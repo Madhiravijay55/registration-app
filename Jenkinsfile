@@ -5,14 +5,13 @@ pipeline {
         maven 'Maven3'
     }
     environment {
-            APP_NAME = "register-app-pipel"
-            RELEASE = "1.0.0"
-            DOCKER_USER = "vijay065"
-            DOCKER_PASS = 'Dockerhub'
-            IMAGE_NAME = "${DOCKER_USER}" + "/" + "${APP_NAME}"
-            IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
+        APP_NAME    = "register-app-pipel"
+        RELEASE     = "1.0.0"
+        DOCKER_USER = "vijay065"          // Make sure this is a string
+        DOCKER_PASS = 'dockerhub'         // This should match your Jenkins credential ID for Docker Hub
+        IMAGE_NAME  = "${DOCKER_USER}/${APP_NAME}"
+        IMAGE_TAG   = "${RELEASE}-${BUILD_NUMBER}"
     }
-            
     stages {
         stage("Cleanup Workspace") {
             steps {
@@ -21,7 +20,6 @@ pipeline {
         }
         stage("Checkout from SCM") {
             steps {
-                // Using 'url:' makes it clear that the third parameter is the repository URL.
                 git branch: 'main', credentialsId: 'github', url: 'https://github.com/Madhiravijay55/registration-app'
             }
         }
@@ -44,27 +42,24 @@ pipeline {
                 }
             }
         }
-        stage ("Quality Gate"){
-            steps{
-                script{
-                     waitForQualityGate abortPipeline: false, credentialsid: 'jenkins-sonarqube-token'
-                }
-            }
-        }
-        stage ("Build & Push Docker Image"){
+        stage("Quality Gate") {
             steps {
                 script {
-                    docker.withRegistry('',DOCKER_PASS){
-                        docker_image = docker.build "${IMAGE_NAME}"
-                    }
-                    docker.withRegistry('',DOCKER_PASS){
+                    // Removed the unsupported credentials parameter
+                    waitForQualityGate abortPipeline: false
+                }
+            }
+        }
+        stage("Build & Push Docker Image") {
+            steps {
+                script {
+                    def docker_image = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                    docker.withRegistry('', DOCKER_PASS) {
                         docker_image.push("${IMAGE_TAG}")
-                        docker-image.push('latest')
+                        docker_image.push('latest')
                     }
                 }
             }
         }
-    
     }
-}     
-       
+}
