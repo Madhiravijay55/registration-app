@@ -4,7 +4,7 @@ pipeline {
         jdk 'java17'
         maven 'Maven3'
     }
-    environment {
+    #environment {
         APP_NAME    = "register-app-pipel"
         RELEASE     = "1.0.0"
         DOCKER_USER = "vijay065"          // Make sure this is a string
@@ -50,7 +50,7 @@ pipeline {
                 }
             }
         }
-        stage("Build & Push Docker Image") {
+        ##stage("Build & Push Docker Image") {
             steps {
                 script {
                     def docker_image = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
